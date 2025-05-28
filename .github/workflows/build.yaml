@@ -1,0 +1,76 @@
+name: build
+
+on:
+  workflow_dispatch:
+    inputs:
+      VERSION:
+        description: "Version"
+        type: string
+        default: ""
+  push:
+    tags:
+      - "*"
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+
+    permissions:
+      contents: read
+
+    env:
+      BUILDX_NO_DEFAULT_ATTESTATIONS: 1
+      VERSION: ${{ inputs.VERSION || github.ref_name }}
+      EPOCH: "-1"
+      REGISTRY: ghcr.io
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+          driver-opts: network=host
+
+      # Login to avoid rate limiting
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Required to get access to the build tool
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.WEIDMUELLER_REGISTRY }}
+          username: ${{ secrets.WEIDMUELLER_REGISTRY_USERNAME }}
+          password: ${{ secrets.WEIDMUELLER_REGISTRY_PASSWORD }}
+
+      - uses: taiki-e/install-action@just
+
+      - name: Create and publish an app package
+        env:
+          CONTAINER_REGISTRY: localhost:5000
+          U_OS_REGISTRY: localhost:5000
+          U_OS_REGISTRY_USERNAME: ""
+          U_OS_REGISTRY_PASSWORD: ""
+        run: |
+          docker pull wmucdev.azurecr.io/u-control/uc-aom-packager:0
+          go run main.go -- build pack export
+          find . -name "*.swu"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+            name: swupdate
+            path: build/swu/*.*

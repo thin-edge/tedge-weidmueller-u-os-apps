@@ -1,0 +1,5 @@
+.DS_Store
+.env
+target-credentials*.json
+source-credentials*.json
+*manifest.json

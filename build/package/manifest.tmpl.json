@@ -1,0 +1,105 @@
+{
+	"$schema": "https://raw.githubusercontent.com/weidmueller/uc-addon/refs/heads/main/uc-manifest.schema.json",
+	"manifestVersion": "0.2",
+	"version": "{{ .Version }}",
+	"title": "thin-edge.io",
+	"description": "Connect to the open edge framework thin-edge.io",
+	"logo": "logo.png",
+	"services": {
+		"tedge": {
+			"type": "docker-compose",
+			"config": {
+				"containerName": "u-os-app-thin-edge",
+				"image": "{{ .ImageName }}",
+				"restart": "on-failure",
+				"tmpfs": "/tmp",
+				"volumes": [
+					"/var/run/docker.sock:/var/run/docker.sock:rw",
+					"certs:/etc/tedge/device-certs",
+					"data:/data/tedge"
+				],
+				"networks": [
+					"tedge"
+				],
+				"extraHosts": [
+					"host.docker.internal:host-gateway"
+				],
+				"ports": [
+					"127.0.0.1:1883:1883",
+					"127.0.0.1:8000:8000",
+					"127.0.0.1:8001:8001"
+				],
+				"environment": {
+					"TEDGE_C8Y_OPERATIONS_AUTO_LOG_UPLOAD": "always"
+				}
+			}
+		}
+	},
+	"environments": {
+		"tedge": {
+			"type": "docker-compose",
+			"config": {
+				"networks": {
+					"tedge": {
+						"name": "tedge"
+					}
+				},
+				"volumes": {
+					"data": {
+						"driver": "local-public"
+					},
+					"certs": {
+						"driver": "local-public"
+					},
+					"3.1.3-1-beta.30-licenses": {
+						"driver": "local-public"
+					}
+				}
+			}
+		}
+	},
+	"settings": {
+		"environmentVariables": [
+			{
+				"name": "DEVICE_ID",
+				"label": "Device ID (External ID)",
+				"default": ""
+			},
+			{
+				"name": "DEVICE_ONE_TIME_PASSWORD",
+				"label": "Cumulocity one-time password",
+				"default": ""
+			},
+			{
+				"name": "TEDGE_C8Y_URL",
+				"label": "C8Y URL",
+				"default": "xxxxxxxx.eu-latest.cumulocity.com"
+			},
+			{
+				"name": "CA",
+				"label": "Certificate Authority",
+				"select": [
+					{
+						"label": "CA",
+						"value": "c8y",
+						"default": true
+					}
+				]
+			}
+		]
+	},
+	"vendor": {
+		"name": "Cumulocity GmbH",
+		"url": "https://thin-edge.io/",
+		"email": "info@thin-edge.io",
+		"street": "",
+		"zip": "",
+		"city": "",
+		"country": "Germany"
+	},
+	"platform": [
+		"ucg",
+		"ucm",
+		"ucu"
+	]
+}
