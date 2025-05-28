@@ -192,7 +192,7 @@ func main() {
 				"wmucdev.azurecr.io/u-control/uc-aom-packager:0",
 				"uc-aom-packager",
 				"export",
-				"-t", "/tmp/addon/target-credentials.json",
+				"-t", "/tmp/addon/package/target-credentials.json",
 				"-o", "/tmp/addon/swu",
 				"--version", manifest.Version,
 				"-vvv",
