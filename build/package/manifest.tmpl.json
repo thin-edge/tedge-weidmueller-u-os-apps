@@ -10,7 +10,7 @@
 			"type": "docker-compose",
 			"config": {
 				"containerName": "u-os-app-thin-edge",
-				"image": "{{ .ImageName }}",
+				"image": "{{ .ImageName }}:{{ .ImageVersion }}",
 				"restart": "on-failure",
 				"tmpfs": "/tmp",
 				"volumes": [

@@ -14,8 +14,9 @@ import (
 )
 
 type Manifest struct {
-	ImageName string
-	Version   string
+	ImageName    string
+	ImageVersion string
+	Version      string
 }
 
 type SourceCredentials struct {
@@ -106,7 +107,9 @@ func main() {
 
 	manifest := Manifest{
 		ImageName: getEnvOrDefault("IMAGE_NAME", "u-os-image-thin-edge"),
-		Version:   getEnvOrDefault("VERSION", "0.0.0-1"),
+		// TODO: Should the image version and app version differ, is there any advantage to this?
+		ImageVersion: getEnvOrDefault("VERSION", "0.0.0-1"),
+		Version:      getEnvOrDefault("VERSION", "0.0.0-1"),
 	}
 	if manifestErr := GenerateManifest(manifest, "build/package/manifest.tmpl.json", "build/package/manifest.json"); manifestErr != nil {
 		log.Fatalf("Failed to generate app manifest. err=%s", manifestErr)
@@ -144,12 +147,12 @@ func main() {
 				"docker", "buildx", "build",
 				"--build-arg", "BUILDKIT_MULTI_PLATFORM=1",
 				"--build-arg", fmt.Sprintf("BUILD_DATE=%s", time.Now().Format("2006-01-02T15:04:05Z")),
-				"--build-arg", fmt.Sprintf("IMAGE_NAME=%s:%s", manifest.ImageName, manifest.Version),
+				"--build-arg", fmt.Sprintf("IMAGE_NAME=%s:%s", manifest.ImageName, manifest.ImageVersion),
 				"--file", "build/image/raw.Dockerfile",
 				"--platform", "linux/arm/v7,linux/arm64",
 				"--output=type=registry,registry.insecure="+fmt.Sprintf("%v", sourceCredentials.Insecure),
 				"--push",
-				"-t", fmt.Sprintf("%s/%s:%s", sourceContainerRegistry, manifest.ImageName, manifest.Version),
+				"-t", fmt.Sprintf("%s/%s:%s", sourceContainerRegistry, manifest.ImageName, manifest.ImageVersion),
 				"build/image",
 			); cmdErr != nil {
 				log.Fatalf("Failed to create/push app to u-OS Registry. err=%s", cmdErr)
