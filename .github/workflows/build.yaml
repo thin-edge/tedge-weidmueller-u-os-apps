@@ -72,4 +72,4 @@ jobs:
         with:
           name: swupdate
           path: |
-            /build/swu/*/*.swu
+            ./build/swu/*/*.swu
