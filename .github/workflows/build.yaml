@@ -72,5 +72,6 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-            name: swupdate
-            path: build/swu/*.*
+          name: swupdate
+          path: |
+            /build/swu/*/*.swu
