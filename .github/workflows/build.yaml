@@ -26,8 +26,6 @@ jobs:
     env:
       BUILDX_NO_DEFAULT_ATTESTATIONS: 1
       VERSION: ${{ inputs.VERSION || github.ref_name }}
-      EPOCH: "-1"
-      REGISTRY: ghcr.io
     steps:
       - uses: actions/checkout@v4
 
