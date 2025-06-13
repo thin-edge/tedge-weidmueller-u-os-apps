@@ -59,9 +59,9 @@ jobs:
       - name: Create and publish an app package
         env:
           CONTAINER_REGISTRY: localhost:5000
-          U_OS_REGISTRY: localhost:5000
-          U_OS_REGISTRY_USERNAME: ""
-          U_OS_REGISTRY_PASSWORD: ""
+          U_OS_REGISTRY: ${{ secrets.WEIDMUELLER_REGISTRY }}
+          U_OS_REGISTRY_USERNAME: ${{ secrets.WEIDMUELLER_REGISTRY_USERNAME }}
+          U_OS_REGISTRY_PASSWORD: ${{ secrets.WEIDMUELLER_REGISTRY_PASSWORD }}
         run: |
           docker pull wmucdev.azurecr.io/u-control/uc-aom-packager:0
           go run main.go -- build pack export
