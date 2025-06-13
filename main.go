@@ -128,7 +128,7 @@ func main() {
 	// u-OS repository credentials
 	uOSContainerRegistry := getEnvOrDefault("U_OS_REGISTRY", sourceContainerRegistry)
 	targetCredentials := TargetCredentials{
-		RepositoryName: getEnvOrDefault("U_OS_REGISTRY_NAME", "u-os-22/u-os-app-thin-edge"),
+		RepositoryName: getEnvOrDefault("U_OS_REGISTRY_NAME", "posuma/u-os-app-thin-edge"),
 		Username:       getEnvOrDefault("U_OS_REGISTRY_USERNAME", sourceCredentials.Username),
 		Password:       getEnvOrDefault("U_OS_REGISTRY_PASSWORD", sourceCredentials.Password),
 		PlainHTTP:      IsLocalHost(uOSContainerRegistry),
@@ -137,6 +137,8 @@ func main() {
 
 	MustWriteToFile(sourceCredentials, "build/package/source-credentials.json")
 	MustWriteToFile(targetCredentials, "build/package/target-credentials.json")
+
+	ucAOMPackagerVersion := "0.7.0-beta.3"
 
 	for _, subcommand := range os.Args[1:] {
 		switch subcommand {
@@ -168,7 +170,7 @@ func main() {
 				"--add-host=host.docker.internal:host-gateway",
 				"--mount", fmt.Sprintf("src=%s/build/package,target=/tmp/addon,type=bind", cwd),
 				"-e", fmt.Sprintf("DEFAULT_REGISTRY_SERVER_ADDRESS=%s", uOSContainerRegistry),
-				"wmucdev.azurecr.io/u-control/uc-aom-packager:0",
+				fmt.Sprintf("wmucdev.azurecr.io/u-control/uc-aom-packager:%s", ucAOMPackagerVersion),
 				"uc-aom-packager",
 				"push",
 				"-m", "/tmp/addon",
@@ -189,7 +191,7 @@ func main() {
 				"--add-host=host.docker.internal:host-gateway",
 				"--mount", fmt.Sprintf("src=%s/build,target=/tmp/addon,type=bind", cwd),
 				"-e", fmt.Sprintf("DEFAULT_REGISTRY_SERVER_ADDRESS=%s", uOSContainerRegistry),
-				"wmucdev.azurecr.io/u-control/uc-aom-packager:0",
+				fmt.Sprintf("wmucdev.azurecr.io/u-control/uc-aom-packager:%s", ucAOMPackagerVersion),
 				"uc-aom-packager",
 				"export",
 				"-t", "/tmp/addon/package/target-credentials.json",
