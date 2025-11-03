@@ -138,7 +138,7 @@ func main() {
 	MustWriteToFile(sourceCredentials, "build/package/source-credentials.json")
 	MustWriteToFile(targetCredentials, "build/package/target-credentials.json")
 
-	ucAOMPackagerVersion := "0.7.0-beta.3"
+	ucAOMPackagerVersion := "0.8.0"
 
 	for _, subcommand := range os.Args[1:] {
 		switch subcommand {
