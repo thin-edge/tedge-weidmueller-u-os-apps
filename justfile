@@ -1,10 +1,10 @@
 
 set dotenv-load
 
-IMAGE_NAME := env("IMAGE_NAME", "u-os-image-thin-edge")
+IMAGE_NAME := env("IMAGE_NAME", "u-os-app-thin-edge")
 
-# Application semver version, e.g. 1.2.3-1 or 1.2.3-alpha.1-1
-VERSION := env("VERSION", "0.0.0-alpha.1-1")
+# Application semver version, e.g. 1.7.0-1 or 1.7.0-1-rc.1
+VERSION := env("VERSION", "1.7.0-1-rc.1")
 
 # On macOS it needs to use the docker host's registry name as docker
 REGISTRY := env("REGISTRY", if os() == "macos" { "host.docker.internal:5001" } else { "127.0.0.1:5001" })
