@@ -106,10 +106,10 @@ func main() {
 	}
 
 	manifest := Manifest{
-		ImageName: getEnvOrDefault("IMAGE_NAME", "u-os-image-thin-edge"),
+		ImageName: getEnvOrDefault("IMAGE_NAME", "u-os-app-thin-edge"),
 		// TODO: Should the image version and app version differ, is there any advantage to this?
-		ImageVersion: getEnvOrDefault("VERSION", "0.0.0-1"),
-		Version:      getEnvOrDefault("VERSION", "0.0.0-1"),
+		ImageVersion: getEnvOrDefault("VERSION", "1.7.0-1-rc.1"),
+		Version:      getEnvOrDefault("VERSION", "1.7.0-1-rc.1"),
 	}
 	if manifestErr := GenerateManifest(manifest, "build/package/manifest.tmpl.json", "build/package/manifest.json"); manifestErr != nil {
 		log.Fatalf("Failed to generate app manifest. err=%s", manifestErr)
