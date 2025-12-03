@@ -1,7 +1,7 @@
 {
 	"$schema": "https://raw.githubusercontent.com/weidmueller/uc-addon/refs/heads/main/uc-manifest.schema.json",
-	"manifestVersion": "{{ .ManifestVersion }}",
-	"version": "{{ .Version }}",
+	"manifestVersion": "1.0",
+	"version": "{{ .ImageVersion }}",
 	"title": "thin-edge.io",
 	"description": "Connect to the open edge framework thin-edge.io",
 	"logo": "logo.png",
