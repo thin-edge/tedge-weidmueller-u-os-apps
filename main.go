@@ -14,9 +14,10 @@ import (
 )
 
 type Manifest struct {
-	ImageName    string
-	ImageVersion string
-	Version      string
+	ImageName       string
+	ImageVersion    string
+	Version         string
+	ManifestVersion string
 }
 
 type SourceCredentials struct {
@@ -106,11 +107,16 @@ func main() {
 	}
 
 	manifest := Manifest{
-		ImageName: getEnvOrDefault("IMAGE_NAME", "u-os-app-thin-edge"),
-		// TODO: Should the image version and app version differ, is there any advantage to this?
+		ImageName:    getEnvOrDefault("IMAGE_NAME", "u-os-app-thin-edge"),
 		ImageVersion: getEnvOrDefault("VERSION", "1.7.0-1-rc.1"),
-		Version:      getEnvOrDefault("VERSION", "1.7.0-1-rc.1"),
 	}
+
+	// Set derived fields
+	if version, manifestVersion, found := strings.Cut(manifest.ImageVersion, "-"); found {
+		manifest.Version = version
+		manifest.ManifestVersion = manifestVersion
+	}
+
 	if manifestErr := GenerateManifest(manifest, "build/package/manifest.tmpl.json", "build/package/manifest.json"); manifestErr != nil {
 		log.Fatalf("Failed to generate app manifest. err=%s", manifestErr)
 	}
@@ -196,7 +202,7 @@ func main() {
 				"export",
 				"-t", "/tmp/addon/package/target-credentials.json",
 				"-o", "/tmp/addon/swu",
-				"--version", manifest.Version,
+				"--version", manifest.ImageVersion,
 				"-vvv",
 			); cmdErr != nil {
 				log.Fatalf("Failed to create/push app to u-OS Registry. err=%s", cmdErr)
