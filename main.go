@@ -112,9 +112,9 @@ func main() {
 	}
 
 	// Set derived fields
-	if version, manifestVersion, found := strings.Cut(manifest.ImageVersion, "-"); found {
-		manifest.Version = version
-		manifest.ManifestVersion = manifestVersion
+	if parts := strings.Split(manifest.ImageVersion, "-"); len(parts) > 1 {
+		manifest.Version = parts[0]
+		manifest.ManifestVersion = parts[1]
 	}
 
 	if manifestErr := GenerateManifest(manifest, "build/package/manifest.tmpl.json", "build/package/manifest.json"); manifestErr != nil {
