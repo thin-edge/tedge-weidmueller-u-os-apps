@@ -72,6 +72,21 @@ detect_firmware_version() {
     return 1
 }
 
+build_hardware_payload() {
+    payload=$(printf '{"model":"%s"' "$(json_escape "$hw_model")")
+
+    if [ -n "$hw_revision" ]; then
+        payload="$payload$(printf ',"revision":"%s"' "$(json_escape "$hw_revision")")"
+    fi
+
+    if [ -n "$hw_serial" ]; then
+        payload="$payload$(printf ',"serialNumber":"%s"' "$(json_escape "$hw_serial")")"
+    fi
+
+    payload="$payload}"
+    printf '%s' "$payload"
+}
+
 publish_if_configured() {
     hw_model="${C8Y_HARDWARE_MODEL:-}"
     hw_revision="${C8Y_HARDWARE_REVISION:-}"
@@ -89,7 +104,7 @@ publish_if_configured() {
     [ -n "$fw_version" ] || fw_version="$(detect_firmware_version || true)"
 
     publish_hardware=false
-    if [ -n "$hw_model" ] && [ -n "$hw_revision" ] && [ -n "$hw_serial" ]; then
+    if [ -n "$hw_model" ]; then
         publish_hardware=true
     fi
 
@@ -107,10 +122,7 @@ publish_if_configured() {
     attempt=1
     while [ "$attempt" -le "$max_attempts" ]; do
         if [ "$publish_hardware" = true ]; then
-            hardware_payload=$(printf '{"model":"%s","revision":"%s","serialNumber":"%s"}' \
-                "$(json_escape "$hw_model")" \
-                "$(json_escape "$hw_revision")" \
-                "$(json_escape "$hw_serial")")
+            hardware_payload="$(build_hardware_payload)"
 
             if ! tedge mqtt pub -r te/device/main///twin/c8y_Hardware "$hardware_payload" >/dev/null 2>&1; then
                 log "Attempt $attempt/$max_attempts: waiting for MQTT to publish c8y_Hardware"
