@@ -9,6 +9,69 @@ json_escape() {
     printf '%s' "${1:-}" | sed 's/\\/\\\\/g; s/"/\\"/g'
 }
 
+read_first_non_empty_file() {
+    for candidate in "$@"; do
+        if [ -f "$candidate" ]; then
+            value=$(tr -d '\000' < "$candidate" | tr -d '\r' | sed -n '1p')
+            if [ -n "$value" ]; then
+                printf '%s' "$value"
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
+detect_hardware_model() {
+    read_first_non_empty_file \
+        /sys/firmware/devicetree/base/model \
+        /proc/device-tree/model \
+        /sys/class/dmi/id/product_name \
+        /sys/devices/virtual/dmi/id/product_name \
+        || true
+}
+
+detect_hardware_revision() {
+    read_first_non_empty_file \
+        /sys/class/dmi/id/product_version \
+        /sys/devices/virtual/dmi/id/product_version \
+        /sys/class/dmi/id/board_version \
+        /sys/devices/virtual/dmi/id/board_version \
+        || true
+}
+
+detect_hardware_serial() {
+    read_first_non_empty_file \
+        /sys/firmware/devicetree/base/serial-number \
+        /proc/device-tree/serial-number \
+        /sys/class/dmi/id/product_serial \
+        /sys/devices/virtual/dmi/id/product_serial \
+        /etc/machine-id \
+        || true
+}
+
+detect_firmware_name() {
+    if [ -r /etc/os-release ]; then
+        name=$(sed -n 's/^NAME=//p' /etc/os-release | sed 's/^"//; s/"$//')
+        if [ -n "$name" ]; then
+            printf '%s' "$name"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+detect_firmware_version() {
+    if [ -r /etc/os-release ]; then
+        version=$(sed -n 's/^VERSION_ID=//p' /etc/os-release | sed 's/^"//; s/"$//')
+        if [ -n "$version" ]; then
+            printf '%s' "$version"
+            return 0
+        fi
+    fi
+    return 1
+}
+
 publish_if_configured() {
     hw_model="${C8Y_HARDWARE_MODEL:-}"
     hw_revision="${C8Y_HARDWARE_REVISION:-}"
@@ -17,6 +80,13 @@ publish_if_configured() {
     fw_name="${C8Y_FIRMWARE_NAME:-}"
     fw_version="${C8Y_FIRMWARE_VERSION:-}"
     fw_url="${C8Y_FIRMWARE_URL:-}"
+
+    [ -n "$hw_model" ] || hw_model="$(detect_hardware_model)"
+    [ -n "$hw_revision" ] || hw_revision="$(detect_hardware_revision)"
+    [ -n "$hw_serial" ] || hw_serial="$(detect_hardware_serial)"
+
+    [ -n "$fw_name" ] || fw_name="$(detect_firmware_name || true)"
+    [ -n "$fw_version" ] || fw_version="$(detect_firmware_version || true)"
 
     publish_hardware=false
     if [ -n "$hw_model" ] && [ -n "$hw_revision" ] && [ -n "$hw_serial" ]; then
@@ -33,7 +103,7 @@ publish_if_configured() {
         return 0
     fi
 
-    max_attempts=90
+    max_attempts=15
     attempt=1
     while [ "$attempt" -le "$max_attempts" ]; do
         if [ "$publish_hardware" = true ]; then
@@ -69,10 +139,8 @@ publish_if_configured() {
     done
 
     log "Failed to publish inventory fragments after $max_attempts attempts"
-    return 1
+    return 0
 }
-
-publish_if_configured &
 
 ensure_default_config_type() {
     plugin_file="/etc/tedge/plugins/tedge-configuration-plugin.toml"
@@ -114,15 +182,8 @@ ensure_default_config_type() {
     done
 
     log "Failed to patch default config type in $plugin_file"
-    return 1
+    return 0
 }
 
-ensure_default_config_type &
-
-if [ "$#" -eq 0 ]; then
-    # Some runtimes clear the image CMD when an entrypoint is overridden.
-    # Fall back to /init so the thin-edge services keep running.
-    set -- /init
-fi
-
-exec "$@"
+ensure_default_config_type
+publish_if_configured
