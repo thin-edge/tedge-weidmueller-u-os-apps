@@ -32,7 +32,7 @@ just run export
 
 ## Important environment variables
 
-- `VERSION` (default: `2.0.1-3`)
+- `VERSION` (default: `2.0.1-4`)
 - `IMAGE_NAME` (default: `u-os-app-thin-edge`)
 - `CONTAINER_REGISTRY` (source registry for raw image)
 - `CONTAINER_REGISTRY_USERNAME`
