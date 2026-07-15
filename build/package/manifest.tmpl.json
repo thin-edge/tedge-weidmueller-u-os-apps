@@ -85,6 +85,36 @@
 						"default": true
 					}
 				]
+			},
+			{
+				"name": "C8Y_HARDWARE_MODEL",
+				"label": "Hardware model (c8y_Hardware.model)",
+				"default": "UC20-WL2000-AC"
+			},
+			{
+				"name": "C8Y_HARDWARE_REVISION",
+				"label": "Hardware revision/order number (c8y_Hardware.revision)",
+				"default": ""
+			},
+			{
+				"name": "C8Y_HARDWARE_SERIAL_NUMBER",
+				"label": "Hardware serial number (c8y_Hardware.serialNumber)",
+				"default": ""
+			},
+			{
+				"name": "C8Y_FIRMWARE_NAME",
+				"label": "Firmware name (c8y_Firmware.name)",
+				"default": "u-OS"
+			},
+			{
+				"name": "C8Y_FIRMWARE_VERSION",
+				"label": "Firmware version (c8y_Firmware.version)",
+				"default": ""
+			},
+			{
+				"name": "C8Y_FIRMWARE_URL",
+				"label": "Firmware URL or hash (c8y_Firmware.url)",
+				"default": ""
 			}
 		]
 	},
