@@ -33,28 +33,6 @@
 					"TEDGE_C8Y_OPERATIONS_AUTO_LOG_UPLOAD": "always"
 				}
 			}
-		},
-		"nodered": {
-			"type": "docker-compose",
-			"config": {
-				"containerName": "nodered",
-				"image": "docker.io/nodered/node-red:4.0.3-22-minimal",
-				"restart": "on-failure",
-				"volumes": [
-					"nodered-data:/data"
-				],
-				"networks": [
-					"tedge"
-				],
-				"ports": [
-					"127.0.0.1:1880:1880"
-				],
-				"environment": {
-					"NODE_RED_ENABLE_PROJECTS": "false",
-					"TEDGE_MQTT_HOST": "u-os-app-thin-edge",
-					"TEDGE_MQTT_PORT": "1883"
-				}
-			}
 		}
 	},
 	"environments": {
