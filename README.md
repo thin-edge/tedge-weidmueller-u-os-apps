@@ -1,6 +1,6 @@
-## thin-edge.io app for Weidmuller u-OS
+## thin-edge.io app for u-OS
 
-This repository packages thin-edge.io as a Weidmuller u-OS add-on.
+This repository packages thin-edge.io as  u-OS add-on.
 
 It provides a small Go-based build orchestrator that can:
 
@@ -32,7 +32,7 @@ just run export
 
 ## Important environment variables
 
-- `VERSION` (default: `2.0.1-1`)
+- `VERSION` (default: `2.0.1-2`)
 - `IMAGE_NAME` (default: `u-os-app-thin-edge`)
 - `CONTAINER_REGISTRY` (source registry for raw image)
 - `CONTAINER_REGISTRY_USERNAME`
@@ -42,6 +42,12 @@ just run export
 - `U_OS_REGISTRY_USERNAME`
 - `U_OS_REGISTRY_PASSWORD`
 - `UC_AOM_PACKAGER_VERSION` (default: `0.8.0`)
+- `C8Y_HARDWARE_MODEL` (published as `c8y_Hardware.model`)
+- `C8Y_HARDWARE_REVISION` (published as `c8y_Hardware.revision`)
+- `C8Y_HARDWARE_SERIAL_NUMBER` (published as `c8y_Hardware.serialNumber`)
+- `C8Y_FIRMWARE_NAME` (published as `c8y_Firmware.name`)
+- `C8Y_FIRMWARE_VERSION` (published as `c8y_Firmware.version`)
+- `C8Y_FIRMWARE_URL` (published as `c8y_Firmware.url`)
 
 ## Local helper commands
 
