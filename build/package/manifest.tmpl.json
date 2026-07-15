@@ -89,7 +89,7 @@
 			{
 				"name": "C8Y_HARDWARE_MODEL",
 				"label": "Hardware model (c8y_Hardware.model)",
-				"default": "UC20-WL2000-AC"
+				"default": ""
 			},
 			{
 				"name": "C8Y_HARDWARE_REVISION",
