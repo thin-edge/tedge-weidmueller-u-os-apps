@@ -74,4 +74,10 @@ publish_if_configured() {
 
 publish_if_configured &
 
+if [ "$#" -eq 0 ]; then
+    # Some runtimes clear the image CMD when an entrypoint is overridden.
+    # Fall back to /init so the thin-edge services keep running.
+    set -- /init
+fi
+
 exec "$@"
