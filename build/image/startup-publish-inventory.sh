@@ -74,6 +74,51 @@ publish_if_configured() {
 
 publish_if_configured &
 
+ensure_default_config_type() {
+    plugin_file="/etc/tedge/plugins/tedge-configuration-plugin.toml"
+    max_attempts=120
+    attempt=1
+
+    while [ "$attempt" -le "$max_attempts" ]; do
+        if [ ! -f "$plugin_file" ]; then
+            attempt=$((attempt + 1))
+            sleep 1
+            continue
+        fi
+
+        if grep -q "type = 'default'" "$plugin_file"; then
+            log "Configuration plugin already contains default config type"
+            return 0
+        fi
+
+        tmp_file="${plugin_file}.tmp"
+        awk '
+            {
+                print $0
+                if ($0 ~ /path = '\''\/etc\/tedge\/tedge\.toml'\''/ && inserted == 0) {
+                    print "    { path = '\''/etc/tedge/tedge.toml'\'', type = '\''default'\'', user = '\''tedge'\'', group = '\''tedge'\'', mode = 0o444 },"
+                    inserted = 1
+                }
+            }
+        ' "$plugin_file" > "$tmp_file"
+
+        if [ -s "$tmp_file" ]; then
+            mv "$tmp_file" "$plugin_file"
+            log "Added default config type to $plugin_file"
+            return 0
+        fi
+
+        rm -f "$tmp_file"
+        attempt=$((attempt + 1))
+        sleep 1
+    done
+
+    log "Failed to patch default config type in $plugin_file"
+    return 1
+}
+
+ensure_default_config_type &
+
 if [ "$#" -eq 0 ]; then
     # Some runtimes clear the image CMD when an entrypoint is overridden.
     # Fall back to /init so the thin-edge services keep running.
