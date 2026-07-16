@@ -1,6 +1,6 @@
-## thin-edge.io app for u-OS
+## thin-edge.io app for Weidmuller u-OS
 
-This repository packages thin-edge.io as  u-OS add-on.
+This repository packages thin-edge.io as a Weidmuller u-OS add-on.
 
 It provides a small Go-based build orchestrator that can:
 
@@ -32,7 +32,7 @@ just run export
 
 ## Important environment variables
 
-- `VERSION` (default: `2.0.1-4`)
+- `VERSION` (default: `2.0.1-10`)
 - `IMAGE_NAME` (default: `u-os-app-thin-edge`)
 - `CONTAINER_REGISTRY` (source registry for raw image)
 - `CONTAINER_REGISTRY_USERNAME`

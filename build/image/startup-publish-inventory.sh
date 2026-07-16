@@ -22,7 +22,62 @@ read_first_non_empty_file() {
     return 1
 }
 
+DATA_HUB_HOST="${DATA_HUB_HOST:-https://host.docker.internal}"
+DATA_HUB_CLIENT_ID="${DATA_HUB_CLIENT_ID:-}"
+DATA_HUB_CLIENT_SECRET="${DATA_HUB_CLIENT_SECRET:-}"
+DATA_HUB_PROVIDER="${DATA_HUB_PROVIDER:-u_os_adm}"
+DATA_HUB_INSECURE="${DATA_HUB_INSECURE:-true}"
+DATA_HUB_TOKEN_CACHE="${TMPDIR:-/tmp}/data-hub-token"
+
+# u-OS Data Hub reports the values that were physically flashed onto the
+# device, unlike /sys or /proc inside this container, which only reflect the
+# container's own (Alpine) view and can't see the host's hardware/firmware.
+data_hub_curl() {
+    if [ "$DATA_HUB_INSECURE" = "true" ]; then
+        curl -sk "$@"
+    else
+        curl -s "$@"
+    fi
+}
+
+data_hub_get_token() {
+    [ -n "$DATA_HUB_CLIENT_ID" ] && [ -n "$DATA_HUB_CLIENT_SECRET" ] || return 1
+
+    # Cached in a file rather than a variable: each call below runs in its
+    # own command-substitution subshell, so a plain variable assignment
+    # would not be visible to the next caller.
+    if [ -s "$DATA_HUB_TOKEN_CACHE" ]; then
+        cat "$DATA_HUB_TOKEN_CACHE"
+        return 0
+    fi
+
+    response=$(data_hub_curl -X POST "$DATA_HUB_HOST/oauth2/token" \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        --data-urlencode "grant_type=client_credentials" \
+        --data-urlencode "client_id=$DATA_HUB_CLIENT_ID" \
+        --data-urlencode "client_secret=$DATA_HUB_CLIENT_SECRET" \
+        --data-urlencode "scope=hub.variables.readonly") || return 1
+
+    token=$(printf '%s' "$response" | jq -r '.access_token // empty' 2>/dev/null)
+    [ -n "$token" ] || return 1
+    printf '%s' "$token" > "$DATA_HUB_TOKEN_CACHE"
+    printf '%s' "$token"
+}
+
+data_hub_get_variable() {
+    key="$1"
+    token=$(data_hub_get_token) || return 1
+
+    response=$(data_hub_curl "$DATA_HUB_HOST/u-os-hub/api/v1/providers/$DATA_HUB_PROVIDER/variables/$key" \
+        -H "Authorization: Bearer $token") || return 1
+
+    value=$(printf '%s' "$response" | jq -r '.value // empty' 2>/dev/null)
+    [ -n "$value" ] || return 1
+    printf '%s' "$value"
+}
+
 detect_hardware_model() {
+    data_hub_get_variable "digital_nameplate.manufacturer_product_type" && return 0
     read_first_non_empty_file \
         /sys/firmware/devicetree/base/model \
         /proc/device-tree/model \
@@ -32,6 +87,7 @@ detect_hardware_model() {
 }
 
 detect_hardware_revision() {
+    data_hub_get_variable "digital_nameplate.hardware_version" && return 0
     read_first_non_empty_file \
         /sys/class/dmi/id/product_version \
         /sys/devices/virtual/dmi/id/product_version \
@@ -41,6 +97,7 @@ detect_hardware_revision() {
 }
 
 detect_hardware_serial() {
+    data_hub_get_variable "digital_nameplate.serial_number" && return 0
     read_first_non_empty_file \
         /sys/firmware/devicetree/base/serial-number \
         /proc/device-tree/serial-number \
@@ -62,6 +119,7 @@ detect_firmware_name() {
 }
 
 detect_firmware_version() {
+    data_hub_get_variable "digital_nameplate.software_version" && return 0
     if [ -r /etc/os-release ]; then
         version=$(sed -n 's/^VERSION_ID=//p' /etc/os-release | sed 's/^"//; s/"$//')
         if [ -n "$version" ]; then
