@@ -38,7 +38,7 @@ type TargetCredentials struct {
 
 const (
 	defaultImageName        = "u-os-app-thin-edge"
-	defaultImageVersion     = "2.0.1-8"
+	defaultImageVersion     = "2.0.1-10"
 	defaultUCAOMPackagerTag = "0.8.0"
 )
 
