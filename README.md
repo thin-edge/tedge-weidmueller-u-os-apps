@@ -8,6 +8,12 @@ It provides a small Go-based build orchestrator that can:
 - create and push a u-OS add-on package
 - export a SWU artifact
 
+The packaged container also polls configured u-OS Data Hub variables via its
+REST API and republishes them as thin-edge measurements on the local
+mosquitto broker, so the built-in thin-edge.io Cumulocity mapper forwards
+them on. See [docs/data-hub-measurements.md](docs/data-hub-measurements.md)
+for how this works and how to configure it.
+
 ## Requirements
 
 - Go
@@ -48,6 +54,10 @@ just run export
 - `C8Y_FIRMWARE_NAME` (published as `c8y_Firmware.name`)
 - `C8Y_FIRMWARE_VERSION` (published as `c8y_Firmware.version`)
 - `C8Y_FIRMWARE_URL` (published as `c8y_Firmware.url`)
+- `DATA_HUB_CLIENT_ID` / `DATA_HUB_CLIENT_SECRET` (u-OS Data Hub OAuth2 client credentials)
+- `DATA_HUB_VARIABLES` (comma-separated u-OS Data Hub variable keys to poll and publish as thin-edge measurements)
+- `DATA_HUB_MEASUREMENT_PROVIDER` (u-OS Data Hub provider that `DATA_HUB_VARIABLES` belongs to)
+- `DATA_HUB_POLL_INTERVAL` (poll interval in seconds, default `10`)
 
 ## Local helper commands
 
