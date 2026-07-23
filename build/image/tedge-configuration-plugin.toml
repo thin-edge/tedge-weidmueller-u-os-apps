@@ -2,4 +2,6 @@ files = [
     { path = '/etc/tedge/tedge.toml', type = 'tedge.toml', user = 'tedge', group = 'tedge', mode = 0o444 },
     { path = '/etc/tedge/tedge.toml', type = 'default', user = 'tedge', group = 'tedge', mode = 0o444 },
     { path = '/etc/tedge/system.toml', type = 'system.toml', user = 'tedge', group = 'tedge', mode = 0o444 },
+    { path = '/data/tedge/data-hub-variables.yaml', type = 'data_hub_variables', user = 'tedge', group = 'tedge', mode = 0o444 },
+    { path = '/data/tedge/data-hub-mapping.conf', type = 'data_hub_mapping', user = 'tedge', group = 'tedge', mode = 0o444 },
 ]

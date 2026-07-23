@@ -1,0 +1,15 @@
+# Polls the u-OS Data Hub REST API for the variables configured via
+# Cumulocity Configuration Management (type data_hub_mapping, read by
+# poll.sh from /data/tedge/data-hub-mapping.conf) and republishes the
+# numeric ones as a thin-edge measurement. No steps needed:
+# poll.sh already prints the finished measurement JSON, which is published
+# to output.mqtt.topic unchanged. Interval is fixed here (not configurable
+# via a u-OS setting/env var - flow.toml values aren't shell-env-substitable,
+# only ${params.*} template values are, and those need a mounted params.toml
+# which u-OS settings can't provide).
+[input.process]
+command = "./poll.sh"
+interval = "10s"
+
+output.mqtt.topic = "te/device/main///m/data_hub"
+errors.mqtt.topic = "te/errors"

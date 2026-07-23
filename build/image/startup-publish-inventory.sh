@@ -159,7 +159,15 @@ publish_if_configured() {
     return 0
 }
 
-ensure_default_config_type() {
+# ensure_config_type <type> <path>
+# Idempotently adds a { path, type, user, group, mode } entry to the
+# tedge-configuration-plugin.toml config-management file, if a config type
+# with that name isn't already present. Waits for the file to exist first,
+# since it's (re)written by thin-edge itself at startup and may not exist
+# yet - or may have just been reset to its defaults - when this runs.
+ensure_config_type() {
+    config_type="$1"
+    file_path="$2"
     plugin_file="/etc/tedge/plugins/tedge-configuration-plugin.toml"
     max_attempts=120
     attempt=1
@@ -171,17 +179,17 @@ ensure_default_config_type() {
             continue
         fi
 
-        if grep -q "type = 'default'" "$plugin_file"; then
-            log "Configuration plugin already contains default config type"
+        if grep -q "type = '$config_type'" "$plugin_file"; then
+            log "Configuration plugin already contains $config_type config type"
             return 0
         fi
 
         tmp_file="${plugin_file}.tmp"
-        awk '
+        awk -v type="$config_type" -v path="$file_path" '
             {
                 print $0
                 if ($0 ~ /path = '\''\/etc\/tedge\/tedge\.toml'\''/ && inserted == 0) {
-                    print "    { path = '\''/etc/tedge/tedge.toml'\'', type = '\''default'\'', user = '\''tedge'\'', group = '\''tedge'\'', mode = 0o444 },"
+                    print "    { path = '\''" path "'\'', type = '\''" type "'\'', user = '\''tedge'\'', group = '\''tedge'\'', mode = 0o444 },"
                     inserted = 1
                 }
             }
@@ -189,7 +197,7 @@ ensure_default_config_type() {
 
         if [ -s "$tmp_file" ]; then
             mv "$tmp_file" "$plugin_file"
-            log "Added default config type to $plugin_file"
+            log "Added $config_type config type to $plugin_file"
             return 0
         fi
 
@@ -198,9 +206,11 @@ ensure_default_config_type() {
         sleep 1
     done
 
-    log "Failed to patch default config type in $plugin_file"
+    log "Failed to patch $config_type config type in $plugin_file"
     return 0
 }
 
-ensure_default_config_type
+ensure_config_type "default" "/etc/tedge/tedge.toml"
+ensure_config_type "data_hub_variables" "/data/tedge/data-hub-variables.yaml"
+ensure_config_type "data_hub_mapping" "/data/tedge/data-hub-mapping.conf"
 publish_if_configured

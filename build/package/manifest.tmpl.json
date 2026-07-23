@@ -95,21 +95,6 @@
 				"name": "DATA_HUB_CLIENT_SECRET",
 				"label": "u-OS Data Hub Client Secret",
 				"default": ""
-			},
-			{
-				"name": "DATA_HUB_VARIABLES",
-				"label": "u-OS Data Hub variables to publish as measurements (comma-separated)",
-				"default": ""
-			},
-			{
-				"name": "DATA_HUB_MEASUREMENT_PROVIDER",
-				"label": "u-OS Data Hub provider for the measurement variables",
-				"default": ""
-			},
-			{
-				"name": "DATA_HUB_POLL_INTERVAL",
-				"label": "u-OS Data Hub measurement poll interval (seconds)",
-				"default": "10"
 			}
 		]
 	},
