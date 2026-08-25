@@ -85,6 +85,16 @@
 						"default": true
 					}
 				]
+			},
+			{
+				"name": "DATA_HUB_CLIENT_ID",
+				"label": "u-OS Data Hub Client ID (Control Center > Identity & access > Clients)",
+				"default": ""
+			},
+			{
+				"name": "DATA_HUB_CLIENT_SECRET",
+				"label": "u-OS Data Hub Client Secret",
+				"default": ""
 			}
 		]
 	},
