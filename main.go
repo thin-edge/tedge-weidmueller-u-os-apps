@@ -36,6 +36,12 @@ type TargetCredentials struct {
 	Insecure       bool   `json:"insecure,omitempty"`
 }
 
+const (
+	defaultImageName        = "u-os-app-thin-edge"
+	defaultImageVersion     = "2.0.1-1"
+	defaultUCAOMPackagerTag = "0.8.0"
+)
+
 func MustWriteToFile(v any, filename string) {
 	log.Printf("✍️ Creating file: %s", filename)
 	b, err := json.Marshal(v)
@@ -107,8 +113,8 @@ func main() {
 	}
 
 	manifest := Manifest{
-		ImageName:    getEnvOrDefault("IMAGE_NAME", "u-os-app-thin-edge"),
-		ImageVersion: getEnvOrDefault("VERSION", "1.7.0-1-rc.1"),
+		ImageName:    getEnvOrDefault("IMAGE_NAME", defaultImageName),
+		ImageVersion: getEnvOrDefault("VERSION", defaultImageVersion),
 	}
 
 	// Set derived fields
@@ -144,7 +150,7 @@ func main() {
 	MustWriteToFile(sourceCredentials, "build/package/source-credentials.json")
 	MustWriteToFile(targetCredentials, "build/package/target-credentials.json")
 
-	ucAOMPackagerVersion := "0.8.0"
+	ucAOMPackagerVersion := getEnvOrDefault("UC_AOM_PACKAGER_VERSION", defaultUCAOMPackagerTag)
 
 	for _, subcommand := range os.Args[1:] {
 		switch subcommand {
@@ -210,5 +216,5 @@ func main() {
 		}
 	}
 
-	fmt.Sprintf("✅ Successful")
+	log.Printf("✅ Successful")
 }
