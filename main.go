@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"os"
 	"os/exec"
 	"strings"
@@ -65,6 +66,16 @@ func IsLocalHost(v string) bool {
 		if strings.Contains(v, localHostValue) {
 			return true
 		}
+	}
+
+	// treat registries on a private LAN IP as insecure too, e.g. a laptop
+	// running a plain-http test registry reachable by a device on the same network
+	host := v
+	if h, _, err := net.SplitHostPort(v); err == nil {
+		host = h
+	}
+	if ip := net.ParseIP(host); ip != nil {
+		return ip.IsPrivate() || ip.IsLoopback()
 	}
 	return false
 }
