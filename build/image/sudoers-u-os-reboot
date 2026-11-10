@@ -1,0 +1,2 @@
+# allow tedge-agent (sudo.enable=true) to run the u-OS reboot command
+tedge  ALL = (ALL) NOPASSWD:SETENV: /usr/local/bin/u-os-reboot.sh

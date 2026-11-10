@@ -1,0 +1,103 @@
+#!/bin/sh
+# Runs via sudo from tedge-agent; the container environment (DATA_HUB_*)
+# is loaded by u-os-api.sh.
+# thin-edge.io log plugin: system logs of the u-OS controller, read from the
+# u-OS Administration API (/logging/entries, scope u-os-adm.logging.readonly).
+#
+# Usage:
+#   u-os list
+#   u-os get <log-type> [--since <epoch seconds>] [--until <epoch seconds>]
+#
+# Log types: "all" (every source) plus one type per source listed in
+# U_OS_LOG_SOURCES that exists on the controller. They show up in
+# Cumulocity as "<type>::u-os".
+set -eu
+
+NOT_SUPPORTED=2
+PAGE_SIZE=500
+MAX_PAGES="${U_OS_LOG_MAX_PAGES:-40}"
+SOURCES="${U_OS_LOG_SOURCES:-docker swupdate NetworkManager containerd u-os-adm sshd kernel}"
+
+. /usr/local/lib/u-os-api.sh
+
+list_log_types() {
+    uos_configured || exit "$NOT_SUPPORTED"
+    available=$(uos_adm_get /logging/sources u-os-adm.logging.readonly \
+        | jq -r '.items[]?.id' 2>/dev/null) || exit "$NOT_SUPPORTED"
+    [ -n "$available" ] || exit "$NOT_SUPPORTED"
+
+    printf 'all\n'
+    for source in $SOURCES; do
+        if printf '%s\n' "$available" | grep -qxF "$source"; then
+            printf '%s\n' "$source"
+        fi
+    done
+}
+
+# get_logs <type> <since> <until>
+# The API returns the newest entries first and has no time filter, so pages
+# are read until an entry is older than <since>. Output is oldest first.
+get_logs() {
+    log_type="$1"; since="$2"; until="$3"
+    query="limit=$PAGE_SIZE"
+    [ "$log_type" = "all" ] || query="$query&sources=$log_type"
+
+    tmp=$(mktemp)
+    trap 'rm -f "$tmp"' EXIT
+    cursor=""
+    page=0
+    while [ "$page" -lt "$MAX_PAGES" ]; do
+        page=$((page + 1))
+        if [ -n "$cursor" ]; then
+            path="/logging/entries?$query&cursor=$(printf '%s' "$cursor" | jq -sRr @uri)"
+        else
+            path="/logging/entries?$query"
+        fi
+        response=$(uos_adm_get "$path" u-os-adm.logging.readonly) || {
+            echo "Could not read logs from the u-OS Administration API" >&2
+            exit 1
+        }
+
+        # epoch seconds from e.g. "2026-11-09T14:16:58.854347+00:00" (UTC)
+        printf '%s' "$response" | jq -r --argjson since "$since" --argjson until "$until" '
+            .items[]?
+            | (.timestamp[0:19] + "Z" | fromdateiso8601) as $t
+            | select($t >= $since and $t <= $until)
+            | "\(.timestamp) \(.source.id): \(.message | gsub("[\r\n]+"; " "))"
+        ' >> "$tmp"
+
+        oldest=$(printf '%s' "$response" | jq -r '
+            [.items[]? | .timestamp[0:19] + "Z" | fromdateiso8601] | min // empty')
+        cursor=$(printf '%s' "$response" | jq -r '.next_cursor // empty')
+        [ -n "$cursor" ] && [ -n "$oldest" ] && [ "$oldest" -ge "$since" ] || break
+    done
+
+    # strip terminal colour codes (e.g. from docker compose logs), oldest first
+    sed 's/\x1b\[[0-9;]*m//g' "$tmp" | sort
+}
+
+case "${1:-}" in
+    list)
+        list_log_types
+        ;;
+    get)
+        shift
+        log_type="${1:-}"
+        [ -n "$log_type" ] || { echo "Missing log type" >&2; exit 1; }
+        shift
+        since=0
+        until=$(date +%s)
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --since) since="$2"; shift 2 ;;
+                --until) until="$2"; shift 2 ;;
+                *) shift ;;
+            esac
+        done
+        get_logs "$log_type" "$since" "$until"
+        ;;
+    *)
+        echo "Usage: $0 list | get <log-type> [--since <epoch>] [--until <epoch>]" >&2
+        exit 1
+        ;;
+esac
