@@ -1,0 +1,4 @@
+#!/command/with-contenv sh
+mkdir -p /etc/tedge/mappers/local
+chown -R tedge:tedge /etc/tedge/mappers/local || true
+exec tedge-mapper local

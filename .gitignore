@@ -4,3 +4,5 @@ target-credentials*.json
 source-credentials*.json
 *manifest.json
 build/swu/
+deploy.sh
+.claude

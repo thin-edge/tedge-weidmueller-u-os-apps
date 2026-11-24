@@ -8,6 +8,17 @@ It provides a small Go-based build orchestrator that can:
 - create and push a u-OS add-on package
 - export a SWU artifact
 
+The packaged container also polls configured u-OS Data Hub variables via its
+REST API and republishes them as thin-edge measurements on the local
+mosquitto broker, so the built-in thin-edge.io Cumulocity mapper forwards
+them on - implemented as a [thin-edge flow](https://thin-edge.github.io/thin-edge.io/extend/flows/)
+running under its own `tedge-mapper local` process. Which variables get
+polled is controlled from Cumulocity's Configuration Management (not a u-OS
+app setting), so it can be changed by anyone with Configuration Management
+access, without u-OS App Settings access. See
+[docs/data-hub-measurements.md](docs/data-hub-measurements.md) for how this
+works and how to configure it.
+
 ## Requirements
 
 - Go
@@ -32,7 +43,7 @@ just run export
 
 ## Important environment variables
 
-- `VERSION` (default: `2.0.1-16`)
+- `VERSION` (default: `2.0.1-17`)
 - `IMAGE_NAME` (default: `u-os-app-thin-edge`)
 - `CONTAINER_REGISTRY` (source registry for raw image)
 - `CONTAINER_REGISTRY_USERNAME`
@@ -48,6 +59,12 @@ just run export
 - `C8Y_FIRMWARE_NAME` (published as `c8y_Firmware.name`)
 - `C8Y_FIRMWARE_VERSION` (published as `c8y_Firmware.version`)
 - `C8Y_FIRMWARE_URL` (published as `c8y_Firmware.url`)
+- `DATA_HUB_CLIENT_ID` / `DATA_HUB_CLIENT_SECRET` (u-OS Data Hub OAuth2 client credentials)
+
+Which variables get polled/published is **not** an env var - it's set via
+Cumulocity Configuration Management (type `data_hub_mapping`); see
+[docs/data-hub-measurements.md](docs/data-hub-measurements.md). Poll interval
+is fixed in `build/image/flows/data-hub-measurements/flow.toml`.
 
 ## Local helper commands
 
